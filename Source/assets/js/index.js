@@ -191,42 +191,42 @@ const data = [
 ];
 
 const graph = (data) => {
+   console.log(data);
    const placements = data.map((d) => d.placements);
    const websiteNames = data.map((d) => d.ws_url);
-   const width = 604;
-   const height = 202;
-   const margin = {top: 20, right: 0, bottom: 0, left: 30};
+   const width = window.innerWidth / 2;
+   const height = window.innerHeight / 2;
+   const margin = {top: 0, right: 0, bottom: 0, left: 100};
    const x = d3
       .scaleLinear()
       .domain([0, d3.max(data, (d) => d.id)])
-      .range([margin.left, 1000 - margin.right])
-      .interpolate(d3.interpolateRound());
+      .range([margin.left, width - margin.right]);
    const y = d3
       .scaleBand()
       .domain(data.map((d) => d.ws_url))
-      .range([margin.top, 1000 - margin.bottom])
-      .padding(0.1)
-      .round(true);
+      .range([margin.top, height - margin.bottom]);
 
-   console.log(y.domain());
+   const yAxis = d3.axisLeft().scale(y);
+
    const svg = d3
       .select('body')
       .append('svg')
       .attr('width', width)
       .attr('height', height)
-      .style('margin-inline', 'auto')
       .style('border', '1px solid red');
 
-   const scales = svg
+   svg.append('g')
+      .attr('transform', `translate(${margin.left}, ${margin.top})`)
+      .call(yAxis);
+   const bars = svg
       .selectAll('rect')
       .data(data)
       .join('rect')
-      .attr('class', 'bar')
-      .attr('x', (d) => x(d.id))
-      .attr('width', (d) => width - x(d.id))
-      .attr('y', y(data.ws_url))
-      .attr('height', y.bandwidth());
-
+      .attr('x', (d) => x(0))
+      .attr('y', (d) => y(d.ws_url))
+      .attr('width', (d) => x(d.id))
+      .attr('height', '50')
+      .style('background-color', '#000');
    //    svg.selectAll('rect')
    //       .data(data)
    //       .join('rect')

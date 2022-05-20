@@ -10,8 +10,7 @@
 </head>
 
 <body>
-    <h1>d3 js playground</h2>
-        <script src="dist/js/main.js" async defer></script>
+    <script src="dist/js/main.js" async defer></script>
 </body>
 
 </html>
