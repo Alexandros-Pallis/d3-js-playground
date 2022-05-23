@@ -240,20 +240,46 @@ const data = [
    },
 ];
 
+const revenueTotalByWebsite = (data) => {
+   const sumRevenuesPerWebsite = [];
+   data.map((d) => {
+      let revenueSum = 0;
+      d.categories.map((c, categoryIndex) => {
+         if (0 === categoryIndex) {
+            revenueSum = c.revenue;
+         } else {
+            revenueSum += c.revenue;
+         }
+      });
+      sumRevenuesPerWebsite.push(revenueSum);
+   });
+   return d3.max(sumRevenuesPerWebsite);
+};
+
 const graph = (data) => {
-   console.log(data);
    const width = window.innerWidth / 2;
    const height = window.innerHeight / 2;
    const margin = {top: 0, right: 0, bottom: 0, left: 100};
-   const revenueSumPerWebsite = [];
-   data.map((d) => {
-      d.categories.map((c) => revenues.push(c.revenue));
-   });
-   console.log(revenues);
+   const editedData = [];
+   data.map((d) =>
+      d.categories.map((c) =>
+         editedData.push({
+            ws_name: d.ws_name,
+            revenue: c.revenue,
+            categoryName: c.name,
+            impressions: c.impressions,
+            clicks: c.clicks,
+            converstions: c.converstions,
+            cpm: c.cpm,
+         }),
+      ),
+   );
+   console.log(editedData);
    const x = d3
       .scaleLinear()
-      .domain([0, data.map((d) => d.categories.map((c) => d3.max(c.revenue)))])
-      .range([margin.left, width - margin.right]);
+      .domain([0, revenueTotalByWebsite(data)])
+      .range([margin.left, width - margin.right])
+      .interpolate(d3.interpolateRound);
    const y = d3
       .scaleBand()
       .domain(data.map((d) => d.ws_name))
@@ -273,14 +299,26 @@ const graph = (data) => {
       .attr('transform', `translate(${margin.left}, ${margin.top})`)
       .call(yAxis);
 
+   let previousName = '';
+   let previousRevenue = 0;
    const bars = svg
       .selectAll('rect')
-      .data(data)
+      .data(editedData)
       .join('rect')
-      .attr('x', x(0))
+      .attr('x', (d, index) => {
+         if (0 !== index && d.ws_name === previousName) {
+            previousName = d.ws_name;
+            previousRevenue = d.revenue;
+            return x(previousRevenue);
+         } else {
+            previousName = d.ws_name;
+            previousRevenue = d.revenue;
+            return x(0);
+         }
+      })
       .attr('y', (d) => y(d.ws_name))
-      .attr('width', (d) => x(d.id))
-      .attr('height', (d) => y(d.ws_name))
+      .attr('width', (d) => x(d.revenue))
+      .attr('height', (d) => y.bandwidth(d.ws_name))
       .style('background-color', '#000');
 };
 graph(data);
